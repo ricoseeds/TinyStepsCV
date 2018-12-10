@@ -16,14 +16,24 @@ using namespace std;
 void takeDFT(Mat &source, Mat &dest);
 void showDFT(Mat &source);
 void recenterDFT(Mat &source);
+void invertDFT(Mat &source, Mat &destination);
+void createGaussian(int row, int col, Mat &output, int ux, int uy, float sigmaX, float sigmaY, float amp);
 
 int main(int argc, const char * argv[]) {
     Mat original = imread("/Users/arghachakraborty/Desktop/cats.jpeg", CV_LOAD_IMAGE_GRAYSCALE);
-    Mat originalFloat;
-    original.convertTo(originalFloat, CV_32FC1, 1.0 / 255.0 );
-    Mat dftOriginal;
-    takeDFT(originalFloat, dftOriginal);
-    showDFT(dftOriginal);
+    Mat output;
+    createGaussian(256, 256, output, 128, 128, 10.0f, 10.0f, 1.0f);
+    imshow("Gaussian", output);
+    waitKey();
+//    Mat originalFloat;
+//    original.convertTo(originalFloat, CV_32FC1, 1.0 / 255.0 );
+//    Mat dftOriginal;
+//    takeDFT(originalFloat, dftOriginal);
+//    showDFT(dftOriginal);
+//    Mat invertedDFT;
+//    invertDFT(dftOriginal, invertedDFT);
+//    imshow("InvertDFTResult", invertedDFT);
+//    waitKey();
     return 0;
 }
 
@@ -66,4 +76,21 @@ void recenterDFT(Mat &source){
     q3.copyTo(q2);
     swapMap.copyTo(q3);
     
+}
+
+void invertDFT(Mat &source, Mat &destination){
+    dft(source, destination, DFT_INVERSE | DFT_REAL_OUTPUT | DFT_SCALE);
+}
+void createGaussian(int row, int col, Mat &output, int ux, int uy, float sigmaX, float sigmaY, float amp){
+    Mat temp = Mat(row, col, CV_32F);
+    for (int r = 0; r < row; r++) {
+        for (int c = 0; c< col; c++) {
+            float x = ((c - ux) * ((float)c - ux)) / (2.0f * sigmaX * sigmaX);
+            float y = ((r - uy) * ((float)r - uy)) / (2.0f * sigmaY * sigmaY);
+            float val = amp * exp(-(x + y));
+            temp.at<float>(r, c) = val;
+        }
+    }
+    normalize(temp, temp, 0.0f, 1.0f, NORM_MINMAX);
+    output = temp;
 }
